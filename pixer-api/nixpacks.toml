@@ -18,7 +18,7 @@ nixPkgs = [
 cmds = [
     "composer install --no-dev --optimize-autoloader",
     "npm install",
-    "npm run production",
+    "NODE_OPTIONS='--openssl-legacy-provider' npm run production",
 ]
 
 [phases.build]
@@ -31,3 +31,6 @@ cmds = [
 
 [start]
 cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
+
+[variables]
+NODE_OPTIONS = "--openssl-legacy-provider"

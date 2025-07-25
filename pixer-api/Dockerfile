@@ -41,7 +41,7 @@ RUN composer install --no-dev --optimize-autoloader
 RUN if [ -f "package.json" ]; then \
     npm install && \
     if npm run | grep -q "production"; then \
-    npm run production; \
+    NODE_OPTIONS='--openssl-legacy-provider' npm run production; \
     fi; \
     fi
 
