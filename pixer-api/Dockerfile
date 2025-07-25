@@ -28,29 +28,30 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy existing application directory contents
-COPY . /var/www
+# Copy composer files first for better caching
+COPY composer.json composer.lock ./
 
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . /var/www
+# Copy the entire project
+COPY . .
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Install Node.js dependencies and build assets (if package.json exists)
-RUN if [ -f "package.json" ]; then \
-    npm install && \
-    if npm run | grep -q "production"; then \
-    NODE_OPTIONS='--openssl-legacy-provider' npm run production; \
-    fi; \
-    fi
+# Install Node.js dependencies
+RUN npm install
 
-# Generate application key
-RUN php artisan key:generate
+# Build assets
+RUN NODE_OPTIONS='--openssl-legacy-provider' npm run production
 
 # Set permissions
 RUN chmod -R 775 storage bootstrap/cache
 RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Copy .env.example to .env if .env doesn't exist
+RUN if [ ! -f ".env" ]; then cp .env.example .env; fi
+
+# Generate application key
+RUN php artisan key:generate --no-interaction
 
 # Expose port
 EXPOSE 8000
