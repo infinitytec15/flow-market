@@ -37,9 +37,13 @@ COPY --chown=www-data:www-data . /var/www
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Install Node.js dependencies and build assets
-RUN npm install
-RUN npm run build
+# Install Node.js dependencies and build assets (if package.json exists)
+RUN if [ -f "package.json" ]; then \
+    npm install && \
+    if npm run | grep -q "production"; then \
+    npm run production; \
+    fi; \
+    fi
 
 # Generate application key
 RUN php artisan key:generate
